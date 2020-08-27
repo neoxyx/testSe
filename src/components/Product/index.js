@@ -7,11 +7,25 @@ import {
     FormGroup,
     Label,
     Input,
-    Alert
+    Alert,
+    FormFeedback
 } from 'reactstrap';
 class FormProduct extends Component {
 
-    state = { model: {id:0, name:'',ref:'',price:'',weight:'',category:'',stock:''}};
+    state = { model: {id:0, name:'',ref:'',price:'',weight:'',category:'',stock:''},
+     mensajeName:'',
+     mensajeRef:'',
+     mensajePrice:'',
+     mensajeWeight:'',
+     mensajeCategory:'',
+     mensajeStock:'',
+     validName:false,
+     validRef:false,
+     validPrice:false,
+     validWeight:false,
+     validCategory:false,
+     validStock:false
+    };
 
     setValues = (e, field) => {
         const { model } = this.state;
@@ -19,9 +33,28 @@ class FormProduct extends Component {
         this.setState({ model });
     };
 
-    create = () => {        
-        this.setState({model: {id:0, name:'',ref:'',price:0,weight:0,category:'',stock:0}})
-        this.props.productCreate(this.state.model);
+    create = () => {
+        if(this.state.model.name === ''){
+            this.setState({validName:true,mensajeName:'El campo nombre es obligatorio, indica nombre del producto'})
+        } else
+        if(this.state.model.category === ''){
+            this.setState({validCategory:true,mensajeCategory:'Indica categoria del producto'})
+        } else
+        if(this.state.model.price === ''){
+            this.setState({validPrice:true,mensajePrice:'Indica precio del producto'})
+        } else 
+        if(this.state.model.weight === ''){
+            this.setState({validWeight:true,mensajeWeight:'Indica peso del producto'})
+        } else 
+        if(this.state.model.stock === ''){
+            this.setState({validStock:true,mensajeStock:'Indica una cantidad de stock del producto'})
+        } else 
+        if(this.state.model.ref === ''){
+            this.setState({validRef:true,mensajeRef:'Indica referencia del producto'})
+        } else {
+            this.props.productCreate(this.state.model);                        
+            this.setState({model: {id:0, name:'',ref:'',price:0,weight:0,category:'',stock:0}});
+        }        
     }
 
     componentWillMount() {
@@ -31,27 +64,29 @@ class FormProduct extends Component {
     }
 
     render() {
-        const errors = this.state;
         return (
             <Form>
                 <FormGroup>
                     <Label for="name">Nombre:</Label>
-                    <Input id="name" type="text" value={this.state.model.name} placeholder="Nombre Producto..." onChange={e => this.setValues(e, 'name')} />
-                    {errors.model.name && <p>{errors.model.name}</p>}
+                    <Input id="name" type="text" value={this.state.model.name} placeholder="Nombre Producto..." onChange={e => this.setValues(e, 'name')} invalid={this.state.validName} />                   
+                    <FormFeedback>{this.state.mensajeName}</FormFeedback>
                 </FormGroup>
                 <FormGroup>
                     <Label for="category">Categoria:</Label>
-                    <Input id="category" type="text" value={this.state.model.category} placeholder="Categoria..." onChange={e => this.setValues(e, 'category')}></Input>
+                    <Input id="category" type="text" value={this.state.model.category} placeholder="Categoria..." onChange={e => this.setValues(e, 'category')} invalid={this.state.validCategory}></Input>
+                    <FormFeedback>{this.state.mensajeCategory}</FormFeedback>
                 </FormGroup>
                 <FormGroup>
                     <div className="form-row">
                         <div className="col-md-6">
                             <Label for="price">Precio:</Label>
-                            <Input id="price" type="number" value={this.state.model.price} placeholder="COP$" onChange={e => this.setValues(e, 'price')} />
+                            <Input id="price" type="number" value={this.state.model.price} placeholder="COP$" onChange={e => this.setValues(e, 'price')} invalid={this.state.validPrice} />
+                            <FormFeedback>{this.state.mensajePrice}</FormFeedback>
                         </div>
                         <div className="col-md-6">
-                            <Label for="weight">Peso:</Label>
-                            <Input id="weight" type="number" value={this.state.model.weight} onChange={e => this.setValues(e, 'weight')} />
+                            <Label for="weight">Peso Kg:</Label>
+                            <Input id="weight" type="number" value={this.state.model.weight} onChange={e => this.setValues(e, 'weight')} invalid={this.state.validWeight} />
+                            <FormFeedback>{this.state.mensajeWeight}</FormFeedback>
                         </div>
                     </div>
                 </FormGroup>
@@ -59,11 +94,13 @@ class FormProduct extends Component {
                     <div className="form-row">
                         <div className="col-md-6">
                             <Label for="stock">Stock:</Label>
-                            <Input id="stock" type="number" value={this.state.model.stock} placeholder="# productos disponibles" onChange={e => this.setValues(e, 'stock')} />
+                            <Input id="stock" type="number" value={this.state.model.stock} placeholder="# productos disponibles" onChange={e => this.setValues(e, 'stock')} invalid={this.state.validStock} />
+                            <FormFeedback>{this.state.mensajeStock}</FormFeedback>
                         </div>
                         <div className="col-md-6">
                             <Label for="ref">Referencia:</Label>
-                            <Input id="ref" type="text" value={this.state.model.ref} onChange={e => this.setValues(e, 'ref')} />
+                            <Input id="ref" type="text" value={this.state.model.ref} onChange={e => this.setValues(e, 'ref')} invalid={this.state.validRef} />
+                            <FormFeedback>{this.state.mensajeRef}</FormFeedback>
                         </div>
                     </div>
                 </FormGroup>
@@ -81,6 +118,10 @@ class ListProduct extends Component {
 
     onEdit = (product) => {
         PubSub.publish('edit-product', product);
+    }
+
+    sale = (id) => {
+        this.props.saleProduct(id);
     }
 
     render() {
@@ -115,7 +156,7 @@ class ListProduct extends Component {
                                 <td>
                                     <Button color="info" size="sm" onClick={e => this.onEdit(product)}>Editar</Button>
                                     <Button color="danger" size="sm" onClick={e => this.delete(product.id)}>Eliminar</Button>
-                                    <Button color="success" size="sm">Vender</Button>
+                                    <Button color="success" size="sm" onClick={e => this.sale(product.id)}>Vender</Button>
                                 </td>
                             </tr> 
                         ))
@@ -129,20 +170,13 @@ class ListProduct extends Component {
 export default class ProductBox extends Component {
 
     Url = 'http://127.0.0.1:8000/api/products';
+    UrlSale = 'http://127.0.0.1:8000/api/transactions';
 
     state = {
         products: [],
         message: {
             text: '',
             alert: ''
-        },
-        errors: {
-            name: 'Campo Obligatorio',
-            price: 'Campo Obligatorio',
-            weight: 'Campo Obligatorio',
-            category: 'Campo Obligatorio',
-            stock: 'Campo Obligatorio',
-            ref: 'Campo Obligatorio'
         }
     }
 
@@ -154,45 +188,45 @@ export default class ProductBox extends Component {
     }
 
     save = (product) => {
-        let data = {
-            id: parseInt(product.id),
-            name: product.name,
-            price: parseInt(product.price),
-            weight: parseInt(product.weight),
-            category: product.category,
-            stock: parseInt(product.stock),
-            ref: product.ref
-        };
-        const requestInfo = {
-            method: data.id !== 0? 'PUT': 'POST',
-            body: JSON.stringify(data),
-            headers: new Headers({
-                'Content-type': 'application/json'
-            })
-        };
-
-        if(data.id === 0) {
-            fetch(this.Url, requestInfo)
-            .then(response => response.json())
-            .then(newProduct => {
-                let {products} = this.state;
-                products.push(newProduct);
-                this.setState({products, message: { text: 'Producto agregado exitosamente!', alert:'success'}});
-                this.timerMessage(3000);
-            })
-            .catch(e => console.log(e));
-        } else {
-            fetch(`${this.Url}/${data.id}`, requestInfo)
-            .then(response => response.json())
-            .then(updatedProduct => {
-                let {products} = this.state;
-                let position = products.findIndex(product => product.id === data.id);
-                products[position] = updatedProduct;
-                this.setState({products, message: { text: 'Producto actualizado exitosamente!', alert:'info'}});
-                this.timerMessage(3000);
-            })
-            .catch(e => console.log(e));
-        }        
+            let data = {
+                id: parseInt(product.id),
+                name: product.name,
+                price: parseInt(product.price),
+                weight: parseInt(product.weight),
+                category: product.category,
+                stock: parseInt(product.stock),
+                ref: product.ref
+            };
+            const requestInfo = {
+                method: data.id !== 0? 'PUT': 'POST',
+                body: JSON.stringify(data),
+                headers: new Headers({
+                    'Content-type': 'application/json'
+                })
+            };
+    
+            if(data.id === 0) {
+                fetch(this.Url, requestInfo)
+                .then(response => response.json())
+                .then(newProduct => {
+                    let {products} = this.state;
+                    products.push(newProduct);
+                    this.setState({products, message: { text: 'Producto agregado exitosamente!', alert:'success'}});
+                    this.timerMessage(3000);
+                })
+                .catch(e => console.log(e));
+            } else {
+                fetch(`${this.Url}/${data.id}`, requestInfo)
+                .then(response => response.json())
+                .then(updatedProduct => {
+                    let {products} = this.state;
+                    let position = products.findIndex(product => product.id === data.id);
+                    products[position] = updatedProduct;
+                    this.setState({products, message: { text: 'Producto actualizado exitosamente!', alert:'info'}});
+                    this.timerMessage(3000);
+                })
+                .catch(e => console.log(e));
+            }           
     }
 
     delete = (id) => {
@@ -204,6 +238,25 @@ export default class ProductBox extends Component {
                 this.timerMessage(3000);
             })
             .catch(e => console.log(e));
+    }
+
+    sale = (id) => {        
+            fetch(`${this.UrlSale}/${id}`, {method:'PUT'})
+            .then(response => response.json())
+            .then(saleProduct => {
+                console.log(saleProduct);                                
+                if(saleProduct.length < 1){
+                    this.setState({message: { text: 'No venta, producto sin stock!', alert:'danger'}});
+                    this.timerMessage(3000);                   
+                } else {                      
+                    let {products} = this.state;                  
+                    let position = products.findIndex(product => product.id === id);
+                    products[position] = saleProduct;
+                    this.setState({products, message: { text: 'Producto vendido exitosamente!', alert:'info'}});
+                    this.timerMessage(3000); 
+                }
+            })
+            .catch(e => console.log(e));      
     }
 
     timerMessage = (duration) => {
@@ -231,7 +284,7 @@ export default class ProductBox extends Component {
                         <h2 className="font-weight-bold text-center">
                         Lista de Productos
                         </h2>                
-                        <ListProduct products={this.state.products} deleteProduct={this.delete}/>
+                        <ListProduct products={this.state.products} deleteProduct={this.delete} saleProduct={this.sale}/>
                     </div>
                 </div>                
             </div>
